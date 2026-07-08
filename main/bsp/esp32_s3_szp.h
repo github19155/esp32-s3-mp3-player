@@ -6,6 +6,7 @@
 #include "esp_log.h"
 #include "esp_check.h"
 #include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
@@ -38,6 +39,7 @@
 #define BSP_I2C_FREQ_HZ       100000         // 100kHz
 
 esp_err_t bsp_i2c_init(void);   // 初始化I2C接口
+i2c_master_bus_handle_t bsp_i2c_get_bus_handle(void); // 获取I2C总线句柄（v6.0新版API）
 /***************************  I2C ↑  *******************************************/
 /*******************************************************************************/
 
@@ -213,7 +215,7 @@ void bsp_lvgl_start(void);
 
 /***********************************************************/
 /****************    摄像头 ↓   ****************************/
-#define CAMERA_EN    1
+#define CAMERA_EN    0
 #if CAMERA_EN
 #include "esp_camera.h"
 

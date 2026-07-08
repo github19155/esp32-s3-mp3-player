@@ -14,6 +14,7 @@ idf_component_register(
         "assets/img_camera_icon.c"
         "assets/img_att_icon.c"
         "assets/img_sd_icon.c"
+        "assets/font_alipuhui20.c"
     INCLUDE_DIRS
         "."
         "bsp"

@@ -8,6 +8,9 @@
 
 static const char *TAG = "page_mgr";
 
+/* 中文矢量字体 */
+LV_FONT_DECLARE(font_alipuhui20);
+
 /* ========== 注册表 ========== */
 #define MAX_PAGES 10
 
@@ -117,7 +120,7 @@ void page_manager_open(page_id_t id)
     lv_obj_t *title_label = lv_label_create(title_bar);
     lv_label_set_text(title_label, cfg->title);
     lv_obj_set_style_text_color(title_label, lv_color_hex(0xffffff), 0);
-    lv_obj_set_style_text_font(title_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(title_label, &font_alipuhui20, 0);
     lv_obj_align(title_label, LV_ALIGN_CENTER, 0, 0);
 
     /* 创建返回按钮 */

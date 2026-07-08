@@ -8,6 +8,8 @@
 
 static const char *TAG = "page_mp3";
 
+LV_FONT_DECLARE(font_alipuhui20);
+
 /* ========== 页面级变量 ========== */
 static lv_obj_t *s_music_list = NULL;
 static lv_obj_t *s_label_play_pause = NULL;
@@ -231,7 +233,7 @@ static void page_mp3_on_enter(void)
     s_music_list = lv_dropdown_create(container);
     lv_dropdown_clear_options(s_music_list);
     lv_dropdown_set_options_static(s_music_list, "扫描中...");
-    lv_obj_set_style_text_font(s_music_list, &lv_font_montserrat_20, LV_STATE_ANY);
+    lv_obj_set_style_text_font(s_music_list, &font_alipuhui20, LV_STATE_ANY);
     lv_obj_set_width(s_music_list, 200);
     lv_obj_align(s_music_list, LV_ALIGN_TOP_MID, 0, 40);
     lv_obj_add_event_cb(s_music_list, music_list_cb, LV_EVENT_VALUE_CHANGED, NULL);

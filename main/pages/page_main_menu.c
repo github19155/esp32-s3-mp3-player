@@ -5,6 +5,8 @@
 
 static const char *TAG = "main_menu";
 
+LV_FONT_DECLARE(font_alipuhui20);
+
 /* ========== 图标网格配置（配置驱动） ========== */
 typedef struct {
     page_id_t    page_id;
@@ -74,7 +76,7 @@ void page_main_menu_create(void)
 
     /* 左上角欢迎语 */
     lv_obj_t *welcome_label = lv_label_create(main_obj);
-    lv_obj_set_style_text_font(welcome_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(welcome_label, &font_alipuhui20, 0);
     lv_obj_set_style_text_color(welcome_label, lv_color_hex(0xffffff), 0);
     lv_label_set_long_mode(welcome_label, LV_LABEL_LONG_SCROLL_CIRCULAR);
     lv_obj_set_width(welcome_label, 280);
@@ -131,7 +133,7 @@ void page_main_menu_create(void)
         /* 标签文字 */
         lv_obj_t *label = lv_label_create(btn);
         lv_label_set_text(label, menu_icons[i].label);
-        lv_obj_set_style_text_font(label, &lv_font_montserrat_14, 0);
+        lv_obj_set_style_text_font(label, &font_alipuhui20, 0);
         if (!menu_icons[i].enabled) {
             lv_obj_set_style_text_color(label, lv_color_hex(0xcccccc), 0);
         }
