@@ -1,111 +1,103 @@
 # 项目交接文档
 
-> 从 Claude Code 迁移到 zcode，这份文档保证你能无缝继续。
+> ESP32-S3 MP3 播放器 · ESP-IDF v6.0.1
+> 最后更新：2026-07-08
 
 ---
 
-## 环境检查清单
+## 环境
 
-- [x] ESP-IDF v5.4 已安装
-- [x] 项目位于 `e:\ai\esp32\`
-- [x] 官方资料位于 `D:\Download\立创·实战派ESP32-S3开发板资料\`
-- [x] Git 已初始化，代码已提交
+| 项 | 值 |
+|-----|-----|
+| ESP-IDF | v6.0.1（路径：`D:\esp\.espressif\v6.0.1\esp-idf`） |
+| 工具链 | `C:\Espressif\tools\`（EIM 离线安装器） |
+| 项目路径 | `E:\ai\esp32\` |
+| 芯片 | ESP32-S3 (WROOM-1-N16R8) |
+| 串口 | COM4 |
+| GitHub | [github19155/esp32-s3-mp3-player](https://github.com/github19155/esp32-s3-mp3-player) |
 
 ---
 
 ## 项目状态（2026-07-08）
 
-当前是 **空代码框架**，按架构设计逐步填充。
+MP3 播放器第一阶段 **已实现**，架构支持扩展。
 
 ```
 e:\ai\esp32\
-├── .git/
-├── .gitignore
-├── README.md                 ← 项目总览 + 目标 + 架构
-├── HARDWARE_REFERENCE.md     ← 硬件引脚速查表
-├── HANDOVER.md               ← 这份交接文档
-├── CMakeLists.txt             ← ESP-IDF 项目入口
-├── sdkconfig.defaults         ← 芯片配置（S3/PSRAM/16MB Flash/LVGL）
-├── partitions.csv             ← 分区表（nvs/factory/storage）
+├── CMakeLists.txt             # 项目入口 + 全局编译选项
+├── sdkconfig.defaults         # 芯片/PSRAM/LVGL/LV_FONT_FMT_TXT_LARGE
+├── partitions.csv             # 分区表（factory 8M + storage 3M）
+├── README.md                  # 项目总览
+├── HARDWARE_REFERENCE.md      # 硬件引脚速查表
+├── HANDOVER.md                # 这份交接文档
+├── components/                # 修改过的第三方组件（本地化）
+│   ├── chmorgan__esp-audio-player/
+│   └── espressif__esp_codec_dev/
 ├── main/
-│   ├── CMakeLists.txt         ← 主组件编译
-│   ├── idf_component.yml      ← 组件依赖
-│   ├── bsp/
-│   │   ├── esp32_s3_szp.h     ← 硬件驱动头文件
-│   │   └── esp32_s3_szp.c     ← 硬件驱动实现 (I2C/PCA9557/LCD/音频/SD)
-│   ├── pages/                 ← 页面（待实现）
-│   ├── player/                ← 播放器（待实现）
-│   └── storage/               ← 存储（待实现）
+│   ├── CMakeLists.txt         # 主组件编译
+│   ├── idf_component.yml      # 组件依赖
+│   ├── main.c                 # 入口：链式初始化
+│   ├── assets/                # 图标 + 中文字体
+│   ├── bsp/                   # 板级支持包（v6.0 新版 I2C）
+│   ├── event/                 # 事件总线
+│   ├── pages/                 # 页面层
+│   ├── player/                # 播放器核心
+│   └── storage/               # SD 卡管理
 ```
 
 ---
 
-## 打开项目后要做什么
+## 编译 & 烧录
 
-### 1. 设目标芯片
-```bash
-idf.py set-target esp32s3
-```
+```powershell
+# 1. 加载 ESP-IDF 环境（PowerShell）
+& 'C:\Espressif\tools\Microsoft.v6.0.1.PowerShell_profile.ps1'
 
-### 2. 装依赖
-```bash
-idf.py clean fullclean
+# 2. 编译
+cd E:\ai\esp32
 idf.py build
-```
-第一次 build 会自动下载 `idf_component.yml` 里声明的依赖。
 
-### 3. 编译 & 烧录
-```bash
-idf.py build flash monitor
+# 3. 烧录 + 监控
+idf.py -p COM4 flash monitor
 ```
 
----
-
-## 核心依赖清单
-
-| 组件 | 版本 | 用途 |
-|------|------|------|
-| `lvgl/lvgl` | ~8.3.0 | 图形库 |
-| `espressif/esp_lvgl_port` | ~1.4.0 | LVGL 与 ESP 的桥接 |
-| `espressif/esp_lcd_touch_ft5x06` | ~1.0.7 | 触摸驱动 |
-| `chmorgan/esp-audio-player` | ~1.0.7 | MP3/WAV 解码播放 |
-| `chmorgan/esp-file-iterator` | 1.0.0 | 文件列表遍历 |
-| `espressif/esp_codec_dev` | ~1.3.0 | 音频编解码器驱动（ES8311/ES7210） |
+> **重要**：ESP-IDF v6.0 不支持 Git Bash，必须在 PowerShell 或 CMD 中执行。
+> 如果 Git Bash 中执行会报 `MSys/Mingw is no longer supported`。
 
 ---
 
-## 开发顺序
+## 扩展指南
 
-按 README.md 的阶段规划，第一阶段只做 MP3 播放器：
+### 加新功能页面
 
-1. **复制硬件驱动层**
-   - 从 `D:\Download\立创·实战派ESP32-S3开发板资料\01-例程\szpi-s3-esp\14-handheld\main\` 把 `esp32_s3_szp.h` 和 `esp32_s3_szp.c` 拷到 `main/bsp/`
-   - ⚠️ 注意：SD 卡部分的函数声明在 14-handheld 版本才完整
+1. 写 `main/pages/page_xxx.c`，实现 `page_xxx_register()` 调用 `page_manager_register()`
+2. 在 `main/main.c` 的注册区加一行 `page_xxx_register()`
+3. 在 `main/pages/page_main_menu.c` 的 `menu_icons[]` 数组里把对应行 `.enabled = true`
 
-2. **写 `main/main.c`**
-   - NVS 初始化
-   - bsp 层初始化（I2C → PCA9557 → LCD/LVGL → 音频 → SD卡）
-   - 启动主菜单页面
+### BLE 遥控
 
-3. **写 `main/pages/page_main_menu.c`**
-   - 参考官方 14-handheld 的 `lv_main_page()`
-   - 先只放 1 个图标：MP3 播放器
-   - 其他图标灰显占位
-
-4. **写 `main/pages/page_mp3.c`**
-   - 参考官方 11-mp3_player + 14-handheld 的 `music_event_handler()`
-   - 改为从 SD 卡扫描文件（用 `opendir/readdir` 替代 file_iterator）
-
-5. **写 `main/storage/sd_manager.c`**
-   - SD 卡挂载/卸载/文件扫描
-   - 参考官方 03-micro_sd + 14-handheld 的 `bsp_sdcard_mount()`
-
-6. **写 `main/player/player_core.c`**
-   - 封装 `esp-audio-player`，统一播放/暂停/切歌/音量接口
+BLE 回调直接调用 `player_core_next()` / `player_core_prev()` 等 API，和触摸 UI 走同一条通道。也可通过 `app_event_post()` 投递事件。
 
 ---
 
-## 关键参考资料路径
+## v6.0 适配记录
+
+| 问题 | 修复 |
+|------|------|
+| I2C 旧 API 弃用 | 重写为 `i2c_master_bus_handle_t` 新版 |
+| `audio_codec_i2c_cfg_t` 传参 | `port` 和 `bus_handle` 分开设置 |
+| `esp_codec_dev` 缺编译依赖 | 补充 `esp_driver_gpio/spi/i2c/i2s` |
+| `esp-audio-player` 缺编译依赖 | 补充 `esp_driver_i2s` |
+| `HSPI_HOST` 未定义 | → `SPI3_HOST` |
+| C++ `-Wignored-qualifiers` 错误 | 全局 `-Wno-ignored-qualifiers` |
+| factory 分区 3MB 不够 | → 8MB（参考官方 14-handheld） |
+| 中文字体太大 | 启用 `LV_FONT_FMT_TXT_LARGE` |
+| `esp_camera.h` 缺失 | `CAMERA_EN=0` 关闭摄像头编译 |
+| `managed_components` 修改后被覆盖 | 迁移到 `components/` 本地管理 |
+
+---
+
+## 参考资料
 
 | 资料 | 路径 |
 |------|------|
@@ -113,33 +105,3 @@ idf.py build flash monitor
 | 手持设备综合例程 | `D:\Download\立创·实战派ESP32-S3开发板资料\01-例程\szpi-s3-esp\14-handheld\` |
 | 原理图 | `D:\Download\立创·实战派ESP32-S3开发板资料\02-文档\立创实战派ESP32-S3开发板原理图.pdf` |
 | 芯片手册 | `D:\Download\立创·实战派ESP32-S3开发板资料\02-文档\02-芯片手册\` |
-
----
-
-## 硬件引脚速查
-
-> 完整版在 [HARDWARE_REFERENCE.md](HARDWARE_REFERENCE.md)
-
-**最常用的几个：**
-
-| 功能 | 引脚 |
-|------|------|
-| I2C SDA/SCL | GPIO 1 / GPIO 2 |
-| LCD MOSI/CLK/DC/背光 | GPIO 40/41/39/42 |
-| I2S MCLK/SCLK/LRCK/DOUT/SDIN | GPIO 38/14/13/45/12 |
-| SD 卡 CLK/CMD/D0 | GPIO 47/48/21 |
-| IO 扩展 I2C 地址 | 0x19 |
-| 音频 DAC I2C 地址 | 0x18 |
-| 音频 ADC I2C 地址 | 0x41（左声道）/ 0x82（右声道）|
-
----
-
-## 踩坑提醒
-
-1. **GPIO 0 被 BOOT 按键占用**，配置为输入上拉，不要用作输出
-2. **LCD 的 CS 不是直连 ESP32**，是通过 PCA9557 IO 扩展芯片控制
-3. **功放使能 PA_EN 也通过 PCA9557 控制**，播放前要拉高
-4. **SD 卡用 1-bit SDMMC 模式**（只用 D0），不是 SPI 模式
-5. **PSRAM 是 8MB Octal 模式**，sdkconfig 里要配对
-6. **LVGL 用 PSRAM 做帧缓冲**，DMA 不能同时开启
-7. **esp32_s3_szp.c 用的是新版 I2C 驱动** (`driver/i2c_master.h`)，不是旧版 `driver/i2c.h`
