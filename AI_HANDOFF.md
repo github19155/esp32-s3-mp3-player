@@ -13,7 +13,7 @@
 3. 除非用户明确要求，任何 AI 不得自行合并分支、变基、回退或推送到 master
 4. 当前阶段优先完成 WiFi 扫描第一版的编译和实机验证
 5. 禁止随意修改：main/player/*、main/storage/sd_manager.*、main/bsp/*、components/*、partitions.csv、sdkconfig.defaults
-6. 每次写代码前先读：AI_HANDOFF.md、HARDWARE_REFERENCE.md、README.md
+6. 每次写代码前先读：AI_HANDOFF.md、CODEX_GUIDE.md、HARDWARE_REFERENCE.md、README.md
 7. 每次完成后必须更新：
    - 改了哪些文件
    - 编译是否通过

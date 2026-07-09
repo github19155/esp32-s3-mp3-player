@@ -233,6 +233,24 @@ static void wifi_scan_task(void *pv)
     vTaskDelete(NULL);
 }
 
+static void forget_btn_cb(lv_event_t *e)
+{
+    (void)e;
+    wifi_nvs_clear();
+    if (s_connected) {
+        esp_wifi_disconnect();
+        s_connected = false;
+        s_connected_ssid[0] = '\0';
+        s_last_ip[0] = '\0';
+    }
+    lvgl_port_lock(0);
+    if (s_conn_label) {
+        lv_label_set_text(s_conn_label, "已清除保存网络");
+        lv_obj_set_style_text_color(s_conn_label, lv_color_hex(0xcc0000), 0);
+    }
+    lvgl_port_unlock();
+}
+
 static void refresh_btn_cb(lv_event_t *e)
 {
     (void)e;
@@ -504,6 +522,16 @@ static void page_wifi_on_enter(void)
     lv_label_set_text(lab, LV_SYMBOL_REFRESH);
     lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
     lv_obj_center(lab);
+
+    /* 忘记网络按钮 — 标题栏下方左侧 */
+    lv_obj_t *btn_forget = lv_btn_create(container);
+    lv_obj_align(btn_forget, LV_ALIGN_TOP_LEFT, 5, 42);
+    lv_obj_set_size(btn_forget, 80, 30);
+    lv_obj_add_event_cb(btn_forget, forget_btn_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_t *lab_forget = lv_label_create(btn_forget);
+    lv_label_set_text(lab_forget, "忘记");
+    lv_obj_set_style_text_font(lab_forget, &font_alipuhui20, 0);
+    lv_obj_center(lab_forget);
 
     /* 连接状态标签 */
     s_conn_label = lv_label_create(container);
