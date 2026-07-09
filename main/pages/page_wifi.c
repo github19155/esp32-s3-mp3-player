@@ -81,6 +81,8 @@ static void wifi_event_cb(void *arg, esp_event_base_t base,
     }
 }
 
+static void list_item_cb(lv_event_t *e);
+
 /* ── 扫描 ── */
 static void do_scan(void)
 {
