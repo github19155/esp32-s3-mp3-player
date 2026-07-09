@@ -43,6 +43,12 @@
 - **目的**：优先扫描 `/sdcard/music`，目录不存在或无匹配文件时回退到 `/sdcard` 根目录。提取 `scan_dir()` 内部函数消除重复代码。
 - **影响范围**：MP3 播放器文件列表数据源
 
+### 修改 3：LV_FONT_FMT_TXT_LARGE 强制生效
+
+- **文件**：无 tracked 文件变更（`build/sdkconfig` 是 generated）
+- **目的**：`sdkconfig.defaults` 里配置了 `CONFIG_LV_FONT_FMT_TXT_LARGE=y`，但旧 build 目录的 sdkconfig 没被覆盖。删除 build 目录重新 set-target + build + flash 后生效。
+- **影响范围**：中文字体 font_alipuhui20 渲染
+
 ---
 
 ## 待验证
@@ -68,6 +74,7 @@
 6. **sdkconfig.defaults**：`LV_FONT_FMT_TXT_LARGE=y` 和 `SUPPRESS_DEPRECATE_WARN=y` 不能删
 7. **components/ 下的 CMakeLists.txt**：补了 v6.0 所需 `esp_driver_*` 依赖，不要回退
 8. **MP3 播放器冻结为 v0.1**：不新增歌词、封面、ID3、EQ、播放模式等
+9. **sdkconfig.defaults 不保证覆盖旧 build**：改完 sdkconfig.defaults 后必须删除 build 目录重新 set-target，否则旧 sdkconfig 会残留
 
 ---
 
