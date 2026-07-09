@@ -9,6 +9,9 @@
 
 static const char *TAG = "sd_manager";
 
+/* 音乐文件存放目录 */
+#define SD_MUSIC_PATH   "/sdcard/music"
+
 /* 文件列表存储 */
 static char s_file_paths[SD_MAX_FILES][128];   /* 完整路径 */
 static char s_file_names[SD_MAX_FILES][64];    /* 仅文件名 */
@@ -52,9 +55,9 @@ int sd_manager_scan(const char *extension)
         return -1;
     }
 
-    DIR *dir = opendir(SD_MOUNT_POINT);
+    DIR *dir = opendir(SD_MUSIC_PATH);
     if (dir == NULL) {
-        ESP_LOGE(TAG, "Failed to open directory: %s", SD_MOUNT_POINT);
+        ESP_LOGE(TAG, "Failed to open directory: %s", SD_MUSIC_PATH);
         return -1;
     }
 
@@ -75,9 +78,9 @@ int sd_manager_scan(const char *extension)
 
         /* 存储路径和文件名 */
         int n = snprintf(s_file_paths[s_file_count], sizeof(s_file_paths[0]),
-                         "%s/%s", SD_MOUNT_POINT, ent->d_name);
+                         "%s/%s", SD_MUSIC_PATH, ent->d_name);
         if (n < 0 || n >= sizeof(s_file_paths[0])) {
-            ESP_LOGW(TAG, "Path too long: %s/%s", SD_MOUNT_POINT, ent->d_name);
+            ESP_LOGW(TAG, "Path too long: %s/%s", SD_MUSIC_PATH, ent->d_name);
             continue;
         }
 
