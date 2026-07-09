@@ -23,9 +23,19 @@
 
 ## 当前任务卡
 
-~~任务：验证 WiFi 扫描页面第一版~~ ✅ 已完成  
-下一个任务：待定  
-不要做：WiFi 连接、密码保存、NTP、MP3 上传（暂未计划）
+任务：WiFi 第二阶段 — 连接功能  
+状态：代码已写，编译未验证  
+下一步：运行 idf.py build，修复编译错误；通过后烧录测试  
+不要做：密码保存、自动连接、NTP、MP3 上传  
+
+完成标准：
+- 编译通过
+- 点击 SSID → 弹出密码输入（roller 滚轮 + textarea）
+- 输入密码后点击 OK → 显示"连接中"
+- 连接成功 → 显示 IP 地址
+- 连接失败 → 显示"连接失败"
+- 退出页面不崩溃
+- 完成后更新 AI_HANDOFF.md
 
 ---
 
@@ -47,7 +57,7 @@
 | 页面管理器 | ✅ 完成 | 注册表 + 生命周期 + 标题栏/返回按钮 |
 | 主菜单 | ✅ 完成 | 6 图标（3×2），MP3 + WiFi 激活，其余灰显 |
 | MP3 播放 UI | ✅ 完成 | 文件列表 + 播放/暂停/切歌/音量滑动条 |
-| **WiFi 扫描** | ✅ 已实现 | 扫描附近 AP，显示 SSID + 信号强度百分比 |
+| WiFi 扫描 + 连接 | 🔨 开发中 | `feature/wifi`，扫描+密码输入+连接+显示IP |
 | WiFi 连接 | ⏸ 未实现 | 下阶段 |
 | NTP 时间 | ⏸ 未实现 | 下阶段 |
 | BLE | ⏸ 未开发 | 页面枚举已预留 |
@@ -69,15 +79,14 @@
 - **状态**：✅ 编译通过
 
 ### 修改 3：WiFi 扫描页面（第一阶段）
-- **文件**：
-  - `main/pages/page_wifi.h` — 新建
-  - `main/pages/page_wifi.c` — 新建
-  - `main/main.c` — 添加 `#include "page_wifi.h"` 和 `page_wifi_register()`
-  - `main/pages/page_main_menu.c` — WiFi 图标 `.enabled = true`
-  - `main/CMakeLists.txt` — 添加 `page_wifi.c`
-- **功能**：点击主菜单 WiFi 图标 → 初始化 WiFi 栈 → 后台扫描 → 列表显示 SSID + 信号强度百分比 → 退出时释放 WiFi 资源
-- **未实现**：连接、密码输入、保存网络、NTP 时间同步
+- **文件**：`main/pages/page_wifi.h`、`main/pages/page_wifi.c`、`main/main.c`、`main/pages/page_main_menu.c`、`main/CMakeLists.txt`
+- **功能**：扫描附近 AP，显示 SSID + 信号强度百分比
 - **状态**：✅ 编译通过，实机验证通过
+
+### 修改 4：WiFi 连接功能（第二阶段）
+- **文件**：`main/pages/page_wifi.c`
+- **功能**：点击 SSID → 密码输入（textarea + 数字/大小写 roller）→ 连接 → 显示 IP 或"连接失败"
+- **状态**：⚠️ 代码已写，编译未验证
 
 ---
 
