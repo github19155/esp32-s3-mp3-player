@@ -34,6 +34,7 @@ static int         s_retry_count      = 0;
 
 static wifi_ap_record_t s_ap_records[WIFI_SCAN_MAX];
 
+static char        s_connected_ssid[33] = "";
 static lv_obj_t   *s_pwd_page         = NULL;
 static lv_obj_t   *s_pwd_textarea     = NULL;
 static lv_obj_t   *s_pwd_ssid_label   = NULL;
@@ -73,7 +74,7 @@ static void wifi_event_cb(void *arg, esp_event_base_t base,
         s_connected  = true;
         lvgl_port_lock(0);
         if (s_conn_label) {
-            lv_label_set_text_fmt(s_conn_label, "已连接\nIP: " IPSTR,
+            lv_label_set_text_fmt(s_conn_label, "IP: " IPSTR,
                                   IP2STR(&ev->ip_info.ip));
         }
         lvgl_port_unlock();
@@ -114,9 +115,16 @@ static void wifi_scan_task(void *pv)
         lv_obj_clean(s_wifi_list);
         for (int i = 0; i < s_ap_count; i++) {
             char info[64];
-            snprintf(info, sizeof(info), "%s  (%d%%)",
-                     (const char *)s_ap_records[i].ssid,
-                     (int)((s_ap_records[i].rssi + 100) * 2));
+            bool is_conn = s_connected && s_connected_ssid[0] &&
+                           strcmp((const char *)s_ap_records[i].ssid, s_connected_ssid) == 0;
+            if (is_conn) {
+                snprintf(info, sizeof(info), "%s  — 已连接",
+                         (const char *)s_ap_records[i].ssid);
+            } else {
+                snprintf(info, sizeof(info), "%s  (%d%%)",
+                         (const char *)s_ap_records[i].ssid,
+                         (int)((s_ap_records[i].rssi + 100) * 2));
+            }
             lv_obj_t *btn = lv_list_add_btn(s_wifi_list, LV_SYMBOL_WIFI, info);
             lv_obj_add_event_cb(btn, list_item_cb, LV_EVENT_CLICKED, NULL);
             lv_obj_set_style_text_font(lv_obj_get_child(btn, 0),
@@ -205,6 +213,7 @@ static void pwd_connect_cb(lv_event_t *e)
     s_connecting  = true;
     s_connected   = false;
     s_retry_count = 0;
+    strncpy(s_connected_ssid, ssid, sizeof(s_connected_ssid) - 1);
 
     lv_obj_del(s_pwd_page);
     s_pwd_page = NULL;
@@ -379,15 +388,15 @@ static void page_wifi_on_enter(void)
 lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
     lv_obj_center(lab);
 
-    /* 连接状态标签 — 放在列表上方 */
+    /* 连接状态标签 — 显示 IP */
     s_conn_label = lv_label_create(container);
     lv_obj_set_style_text_font(s_conn_label, &font_alipuhui20, 0);
     lv_obj_set_style_text_color(s_conn_label, lv_color_hex(0x006600), 0);
-    lv_obj_align(s_conn_label, LV_ALIGN_TOP_LEFT, 5, 45);
+    lv_obj_align(s_conn_label, LV_ALIGN_TOP_LEFT, 5, 60);
 
     s_wifi_list = lv_list_create(container);
-    lv_obj_set_size(s_wifi_list, 310, 155);
-    lv_obj_align(s_wifi_list, LV_ALIGN_TOP_LEFT, 5, 65);
+    lv_obj_set_size(s_wifi_list, 310, 140);
+    lv_obj_align(s_wifi_list, LV_ALIGN_TOP_LEFT, 5, 80);
     lv_obj_set_style_border_width(s_wifi_list, 0, 0);
     lv_obj_set_style_text_font(s_wifi_list, &font_alipuhui20, 0);
     lv_obj_set_scrollbar_mode(s_wifi_list, LV_SCROLLBAR_MODE_OFF);
@@ -415,6 +424,7 @@ static void page_wifi_on_exit(void)
     s_scan_label  = NULL;
     s_wifi_list   = NULL;
     s_conn_label  = NULL;
+    s_connected_ssid[0] = '\0';
 }
 
 /* ── 注册 ── */
