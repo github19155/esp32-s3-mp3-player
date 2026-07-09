@@ -116,6 +116,7 @@ static void wifi_scan_task(void *pv)
                      (const char *)s_ap_records[i].ssid,
                      (int)((s_ap_records[i].rssi + 100) * 2));
             lv_obj_t *btn = lv_list_add_btn(s_wifi_list, LV_SYMBOL_WIFI, info);
+            lv_obj_add_event_cb(btn, list_item_cb, LV_EVENT_CLICKED, NULL);
             lv_obj_set_style_text_font(lv_obj_get_child(btn, 0),
                                        &lv_font_montserrat_24, 0);
         }
@@ -373,7 +374,7 @@ static void page_wifi_on_enter(void)
     lv_obj_add_event_cb(btn, refresh_btn_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_t *lab = lv_label_create(btn);
     lv_label_set_text(lab, LV_SYMBOL_REFRESH);
-    lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
+lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
     lv_obj_center(lab);
 
     /* 连接状态标签 */
