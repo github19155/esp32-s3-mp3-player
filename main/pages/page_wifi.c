@@ -335,6 +335,11 @@ static void pwd_connect_cb(lv_event_t *e)
     strncpy((char *)cfg.sta.ssid, ssid, sizeof(cfg.sta.ssid)-1);
     strncpy((char *)cfg.sta.password, pwd, sizeof(cfg.sta.password)-1);
 
+    /* 切换 SSID 时先断开当前连接 */
+    if (s_connected) {
+        esp_wifi_disconnect();
+        s_connected = false;
+    }
     esp_wifi_set_config(WIFI_IF_STA, &cfg);
     esp_wifi_connect();
 
@@ -485,6 +490,11 @@ static void auto_connect_task(void *pv)
     if (wifi_nvs_load(ssid, sizeof(ssid), pwd, sizeof(pwd)) != ESP_OK) {
         ESP_LOGI(TAG, "No saved WiFi credentials");
         s_auto_connecting = false;
+        /* 加载失败仍触发扫描，避免页面空白 */
+        if (!s_scanning) {
+            s_scanning = true;
+            xTaskCreatePinnedToCore(wifi_scan_task, "wifi_scan", 4*1024, NULL, 3, NULL, 1);
+        }
         vTaskDelete(NULL);
         return;
     }
