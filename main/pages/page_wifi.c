@@ -248,7 +248,7 @@ static void show_password_input(int ap_index)
 
     s_pwd_textarea = lv_textarea_create(s_pwd_page);
     lv_textarea_set_one_line(s_pwd_textarea, true);
-    lv_textarea_set_placeholder_text(s_pwd_textarea, "密码");
+    lv_textarea_set_placeholder_text(s_pwd_textarea, "Password");
     lv_obj_set_width(s_pwd_textarea, 150);
     lv_obj_align(s_pwd_textarea, LV_ALIGN_TOP_LEFT, 10, 40);
     lv_obj_add_state(s_pwd_textarea, LV_STATE_FOCUSED);
@@ -379,15 +379,15 @@ static void page_wifi_on_enter(void)
 lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
     lv_obj_center(lab);
 
-    /* 连接状态标签 */
+    /* 连接状态标签 — 放在列表上方 */
     s_conn_label = lv_label_create(container);
-    lv_obj_set_style_text_font(s_conn_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_font(s_conn_label, &font_alipuhui20, 0);
     lv_obj_set_style_text_color(s_conn_label, lv_color_hex(0x006600), 0);
-    lv_obj_align(s_conn_label, LV_ALIGN_BOTTOM_LEFT, 5, -5);
+    lv_obj_align(s_conn_label, LV_ALIGN_TOP_LEFT, 5, 45);
 
     s_wifi_list = lv_list_create(container);
-    lv_obj_set_size(s_wifi_list, 310, 150);
-    lv_obj_align(s_wifi_list, LV_ALIGN_TOP_LEFT, 5, 75);
+    lv_obj_set_size(s_wifi_list, 310, 155);
+    lv_obj_align(s_wifi_list, LV_ALIGN_TOP_LEFT, 5, 65);
     lv_obj_set_style_border_width(s_wifi_list, 0, 0);
     lv_obj_set_style_text_font(s_wifi_list, &font_alipuhui20, 0);
     lv_obj_set_scrollbar_mode(s_wifi_list, LV_SCROLLBAR_MODE_OFF);
