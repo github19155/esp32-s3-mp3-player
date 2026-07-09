@@ -378,7 +378,7 @@ static void page_wifi_on_enter(void)
 
     /* 连接状态标签 */
     s_conn_label = lv_label_create(container);
-    lv_obj_set_style_text_font(s_conn_label, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(s_conn_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(s_conn_label, lv_color_hex(0x006600), 0);
     lv_obj_align(s_conn_label, LV_ALIGN_BOTTOM_LEFT, 5, -5);
 
