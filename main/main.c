@@ -11,6 +11,7 @@
 #include "page_manager.h"
 #include "page_main_menu.h"
 #include "page_mp3.h"
+#include "page_wifi.h"
 
 static const char *TAG = "main";
 
@@ -74,7 +75,7 @@ void app_main(void)
      *  然后去 page_main_menu.c 把对应 icon 的 enabled 改为 true
      * ═══════════════════════════════════════════════════════════ */
     page_mp3_register();
-    // page_wifi_register();      /* 未来：取消注释 */
+    page_wifi_register();      /* WiFi 扫描页面 */
     // page_ble_register();       /* 未来：取消注释 */
     // page_camera_register();    /* 未来：取消注释 */
     // page_attitude_register();  /* 未来：取消注释 */

@@ -26,7 +26,7 @@ LV_IMG_DECLARE(img_btset_icon);
 
 static const menu_icon_cfg_t menu_icons[] = {
     { .page_id = PAGE_MP3,      .label = "MP3",    .color = LV_COLOR_MAKE(0xf8, 0x7c, 0x30), .enabled = true,  .icon = &img_music_icon   },
-    { .page_id = PAGE_WIFI,     .label = "WiFi",   .color = LV_COLOR_MAKE(0xcd, 0x5c, 0x5c), .enabled = false, .icon = &img_wifiset_icon },
+    { .page_id = PAGE_WIFI,     .label = "WiFi",   .color = LV_COLOR_MAKE(0xcd, 0x5c, 0x5c), .enabled = true,  .icon = &img_wifiset_icon },
     { .page_id = PAGE_BLE,      .label = "BLE",    .color = LV_COLOR_MAKE(0xb8, 0x7f, 0xa8), .enabled = false, .icon = &img_btset_icon   },
     { .page_id = PAGE_CAMERA,   .label = "摄像",   .color = LV_COLOR_MAKE(0xd8, 0xb0, 0x10), .enabled = false, .icon = &img_camera_icon  },
     { .page_id = PAGE_ATTITUDE, .label = "姿态",   .color = LV_COLOR_MAKE(0x30, 0xa8, 0x30), .enabled = false, .icon = &img_att_icon     },

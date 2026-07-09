@@ -7,6 +7,7 @@ idf_component_register(
         "pages/page_manager.c"
         "pages/page_main_menu.c"
         "pages/page_mp3.c"
+        "pages/page_wifi.c"
         "main.c"
         "assets/img_music_icon.c"
         "assets/img_wifiset_icon.c"
