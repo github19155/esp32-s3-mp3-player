@@ -94,6 +94,7 @@ static void wifi_nvs_clear(void)
 
 static void wifi_event_cb(void *arg, esp_event_base_t base,
                           int32_t id, void *data);
+static void wifi_scan_task(void *pv);
 
 /* ── WiFi 栈初始化（幂等） ── */
 static void ensure_wifi_stack(void)
@@ -140,18 +141,24 @@ static void wifi_event_cb(void *arg, esp_event_base_t base,
         } else if (s_auto_connecting) {
             s_auto_connecting = false;
             s_connected = false;
-            wifi_nvs_clear();
+            s_connected_ssid[0] = '\0';
+            s_pending_password[0] = '\0';
             lvgl_port_lock(0);
             if (s_conn_label) lv_label_set_text(s_conn_label, "自动连接失败");
             lvgl_port_unlock();
+            /* 自动连接失败后触发扫描 */
+            s_scanning = true;
+            xTaskCreatePinnedToCore(wifi_scan_task, "wifi_scan", 4*1024, NULL, 3, NULL, 1);
         } else if (s_connecting && s_retry_count < WIFI_MAX_RETRY) {
             esp_wifi_connect();
             s_retry_count++;
             ESP_LOGI(TAG, "Retry %d/%d", s_retry_count, WIFI_MAX_RETRY);
         } else if (s_connecting) {
             s_connecting = false;
+            s_connected_ssid[0] = '\0';
+            s_pending_password[0] = '\0';
             lvgl_port_lock(0);
-            if (s_conn_label) lv_label_set_text(s_conn_label, "连接失败");
+            if (s_conn_label) lv_label_set_text(s_conn_label, "密码错误或连接失败");
             lvgl_port_unlock();
         }
     }
@@ -176,6 +183,12 @@ static void wifi_event_cb(void *arg, esp_event_base_t base,
         }
         lvgl_port_unlock();
         ESP_LOGI(TAG, "Got IP: " IPSTR, IP2STR(&ev->ip_info.ip));
+
+        /* 自动连接成功后也触发一次扫描 */
+        if (!s_scanning) {
+            s_scanning = true;
+            xTaskCreatePinnedToCore(wifi_scan_task, "wifi_scan", 4*1024, NULL, 3, NULL, 1);
+        }
     }
 }
 

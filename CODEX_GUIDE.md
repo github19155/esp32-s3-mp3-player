@@ -8,9 +8,10 @@
 
 1. `AI_HANDOFF.md`：当前进度、当前任务、AI 协作规则。
 2. `CODEX_GUIDE.md`：Codex 自己的角色边界和长期路线。
-3. `HARDWARE_REFERENCE.md`：硬件约束、引脚、音频/I2C 坑点。
-4. `README.md` / `HANDOVER.md`：项目结构、编译烧录方式。
-5. 当前分支的 `git status`、必要时看 `git log` / `git diff`。
+3. `LONG_TERM_PLAN.md`：长期路线、阶段边界、近期任务队列。
+4. `HARDWARE_REFERENCE.md`：硬件约束、引脚、音频/I2C 坑点。
+5. `README.md` / `HANDOVER.md`：项目结构、编译烧录方式。
+6. 当前分支的 `git status`、必要时看 `git log` / `git diff`。
 
 ## 2. Codex 的角色边界
 
@@ -41,6 +42,8 @@
 - `sdkconfig.defaults`：Flash/PSRAM/LVGL 字体等关键配置。
 
 ## 5. 当前长期路线
+
+长期路线以 `LONG_TERM_PLAN.md` 为准，本节只保留简要提醒。
 
 总路线：
 
