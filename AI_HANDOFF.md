@@ -10,10 +10,11 @@
 开发规则：
 1. 当前分支：feature/wifi
 2. master 保持 MP3 v0.1 稳定基线，不直接开发新功能
-3. 当前阶段优先完成 WiFi 扫描第一版的编译和实机验证
-4. 禁止随意修改：main/player/*、main/storage/sd_manager.*、main/bsp/*、components/*、partitions.csv、sdkconfig.defaults
-5. 每次写代码前先读：AI_HANDOFF.md、HARDWARE_REFERENCE.md、README.md
-6. 每次完成后必须更新：
+3. 除非用户明确要求，任何 AI 不得自行合并分支、变基、回退或推送到 master
+4. 当前阶段优先完成 WiFi 扫描第一版的编译和实机验证
+5. 禁止随意修改：main/player/*、main/storage/sd_manager.*、main/bsp/*、components/*、partitions.csv、sdkconfig.defaults
+6. 每次写代码前先读：AI_HANDOFF.md、HARDWARE_REFERENCE.md、README.md
+7. 每次完成后必须更新：
    - 改了哪些文件
    - 编译是否通过
    - 是否烧录测试

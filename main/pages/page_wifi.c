@@ -6,6 +6,7 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_netif.h"
+#include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <string.h>
@@ -16,13 +17,18 @@ LV_FONT_DECLARE(font_alipuhui20);
 
 #define WIFI_SCAN_MAX    20
 #define WIFI_MAX_RETRY   3
+#define NVS_NAMESPACE    "wifi_cfg"
 
-/* ── WiFi 全局句柄 ── */
+/* ── WiFi 全局句柄（跨页面生命周期） ── */
 static esp_netif_t               *s_sta_netif      = NULL;
 static esp_event_handler_instance_t s_wifi_handle   = NULL;
 static esp_event_handler_instance_t s_ip_handle     = NULL;
+static bool                        s_wifi_initialized = false;
+static bool                        s_auto_connecting  = false;
+static char                        s_last_ip[16]      = "";
+static char                        s_pending_password[64] = "";
 
-/* ── 扫描状态 ── */
+/* ── 扫描/连接状态 ── */
 static lv_obj_t   *s_scan_label       = NULL;
 static lv_obj_t   *s_wifi_list        = NULL;
 static lv_obj_t   *s_conn_label       = NULL;
@@ -31,13 +37,86 @@ static bool        s_connecting       = false;
 static bool        s_connected        = false;
 static int         s_ap_count         = 0;
 static int         s_retry_count      = 0;
-
 static wifi_ap_record_t s_ap_records[WIFI_SCAN_MAX];
-
 static char        s_connected_ssid[33] = "";
+
+/* ── 密码页面 ── */
 static lv_obj_t   *s_pwd_page         = NULL;
 static lv_obj_t   *s_pwd_textarea     = NULL;
 static lv_obj_t   *s_pwd_ssid_label   = NULL;
+
+/* ── NVS 操作 ── */
+static bool wifi_nvs_has_saved(void)
+{
+    nvs_handle_t h;
+    if (nvs_open(NVS_NAMESPACE, NVS_READONLY, &h) != ESP_OK) return false;
+    uint8_t v = 0;
+    esp_err_t r = nvs_get_u8(h, "has_saved", &v);
+    nvs_close(h);
+    return (r == ESP_OK && v == 1);
+}
+
+static esp_err_t wifi_nvs_load(char *ssid, size_t ssid_len,
+                               char *pwd, size_t pwd_len)
+{
+    nvs_handle_t h;
+    esp_err_t r = nvs_open(NVS_NAMESPACE, NVS_READONLY, &h);
+    if (r != ESP_OK) return r;
+    size_t sl = ssid_len;
+    r = nvs_get_str(h, "ssid", ssid, &sl);
+    if (r != ESP_OK) { nvs_close(h); return r; }
+    size_t pl = pwd_len;
+    r = nvs_get_str(h, "password", pwd, &pl);
+    nvs_close(h);
+    return r;
+}
+
+static void wifi_nvs_save(const char *ssid, const char *pwd)
+{
+    nvs_handle_t h;
+    if (nvs_open(NVS_NAMESPACE, NVS_READWRITE, &h) != ESP_OK) return;
+    nvs_set_str(h, "ssid", ssid);
+    nvs_set_str(h, "password", pwd);
+    nvs_set_u8(h, "has_saved", 1);
+    nvs_commit(h);
+    nvs_close(h);
+    ESP_LOGI(TAG, "NVS saved: %s", ssid);
+}
+
+static void wifi_nvs_clear(void)
+{
+    nvs_handle_t h;
+    if (nvs_open(NVS_NAMESPACE, NVS_READWRITE, &h) != ESP_OK) return;
+    nvs_set_u8(h, "has_saved", 0);
+    nvs_commit(h);
+    nvs_close(h);
+}
+
+static void wifi_event_cb(void *arg, esp_event_base_t base,
+                          int32_t id, void *data);
+
+/* ── WiFi 栈初始化（幂等） ── */
+static void ensure_wifi_stack(void)
+{
+    if (s_wifi_initialized) return;
+
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    s_sta_netif = esp_netif_create_default_wifi_sta();
+    assert(s_sta_netif);
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+        WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_cb, NULL, &s_wifi_handle));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+        IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_cb, NULL, &s_ip_handle));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_start());
+
+    s_wifi_initialized = true;
+    ESP_LOGI(TAG, "WiFi stack initialized");
+}
 
 /* ── WiFi 事件回调 ── */
 static void wifi_event_cb(void *arg, esp_event_base_t base,
@@ -54,24 +133,42 @@ static void wifi_event_cb(void *arg, esp_event_base_t base,
         wifi_event_sta_disconnected_t *d = (wifi_event_sta_disconnected_t *)data;
         ESP_LOGW(TAG, "WiFi disconnected, reason=%d", d->reason);
 
-        if (s_connecting && s_retry_count < WIFI_MAX_RETRY) {
+        if (s_auto_connecting && s_retry_count < WIFI_MAX_RETRY) {
+            esp_wifi_connect();
+            s_retry_count++;
+            ESP_LOGI(TAG, "Auto-connect retry %d/%d", s_retry_count, WIFI_MAX_RETRY);
+        } else if (s_auto_connecting) {
+            s_auto_connecting = false;
+            s_connected = false;
+            wifi_nvs_clear();
+            lvgl_port_lock(0);
+            if (s_conn_label) lv_label_set_text(s_conn_label, "自动连接失败");
+            lvgl_port_unlock();
+        } else if (s_connecting && s_retry_count < WIFI_MAX_RETRY) {
             esp_wifi_connect();
             s_retry_count++;
             ESP_LOGI(TAG, "Retry %d/%d", s_retry_count, WIFI_MAX_RETRY);
         } else if (s_connecting) {
             s_connecting = false;
             lvgl_port_lock(0);
-            if (s_conn_label) {
-                lv_label_set_text(s_conn_label, "连接失败");
-            }
+            if (s_conn_label) lv_label_set_text(s_conn_label, "连接失败");
             lvgl_port_unlock();
         }
     }
 
     if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *ev = (ip_event_got_ip_t *)data;
-        s_connecting = false;
-        s_connected  = true;
+        s_connecting      = false;
+        s_auto_connecting = false;
+        s_connected       = true;
+        snprintf(s_last_ip, sizeof(s_last_ip), IPSTR, IP2STR(&ev->ip_info.ip));
+
+        /* 保存到 NVS */
+        if (s_pending_password[0]) {
+            wifi_nvs_save(s_connected_ssid, s_pending_password);
+            s_pending_password[0] = '\0';
+        }
+
         lvgl_port_lock(0);
         if (s_conn_label) {
             lv_label_set_text_fmt(s_conn_label, "IP: " IPSTR,
@@ -214,6 +311,7 @@ static void pwd_connect_cb(lv_event_t *e)
     s_connected   = false;
     s_retry_count = 0;
     strncpy(s_connected_ssid, ssid, sizeof(s_connected_ssid) - 1);
+    strncpy(s_pending_password, pwd, sizeof(s_pending_password) - 1);
 
     lv_obj_del(s_pwd_page);
     s_pwd_page = NULL;
@@ -335,7 +433,6 @@ static void list_item_cb(lv_event_t *e)
     const char *text = lv_list_get_btn_text(s_wifi_list, lv_event_get_target(e));
     if (!text) return;
 
-    /* 在扫描结果里匹配 SSID */
     for (int i = 0; i < s_ap_count; i++) {
         char info[64];
         snprintf(info, sizeof(info), "%s  (%d%%)",
@@ -349,28 +446,48 @@ static void list_item_cb(lv_event_t *e)
     }
 }
 
+/* ── 自动连接任务 ── */
+static void auto_connect_task(void *pv)
+{
+    (void)pv;
+    char ssid[33] = "", pwd[65] = "";
+    if (wifi_nvs_load(ssid, sizeof(ssid), pwd, sizeof(pwd)) != ESP_OK) {
+        ESP_LOGI(TAG, "No saved WiFi credentials");
+        s_auto_connecting = false;
+        vTaskDelete(NULL);
+        return;
+    }
+
+    ESP_LOGI(TAG, "Auto-connecting to: %s", ssid);
+
+    lvgl_port_lock(0);
+    if (s_conn_label) lv_label_set_text(s_conn_label, "正在连接已保存网络...");
+    lvgl_port_unlock();
+
+    wifi_config_t cfg = { .sta = {
+        .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+    }};
+    strncpy((char *)cfg.sta.ssid, ssid, sizeof(cfg.sta.ssid)-1);
+    strncpy((char *)cfg.sta.password, pwd, sizeof(cfg.sta.password)-1);
+
+    esp_wifi_set_config(WIFI_IF_STA, &cfg);
+    esp_wifi_connect();
+
+    s_auto_connecting = true;
+    s_retry_count = 0;
+    strncpy(s_connected_ssid, ssid, sizeof(s_connected_ssid) - 1);
+    strncpy(s_pending_password, pwd, sizeof(s_pending_password) - 1);
+
+    vTaskDelete(NULL);
+}
+
 /* ── 页面 on_enter / on_exit ── */
 static void page_wifi_on_enter(void)
 {
     lv_obj_t *container = page_manager_get_container();
     if (!container) return;
 
-    s_connecting = false;
-    s_connected  = false;
-
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    s_sta_netif = esp_netif_create_default_wifi_sta();
-    assert(s_sta_netif);
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-        WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_cb, NULL, &s_wifi_handle));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-        IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_cb, NULL, &s_ip_handle));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_start());
+    ensure_wifi_stack();
 
     lvgl_port_lock(0);
 
@@ -385,10 +502,10 @@ static void page_wifi_on_enter(void)
     lv_obj_add_event_cb(btn, refresh_btn_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_t *lab = lv_label_create(btn);
     lv_label_set_text(lab, LV_SYMBOL_REFRESH);
-lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
     lv_obj_center(lab);
 
-    /* 连接状态标签 — 显示 IP */
+    /* 连接状态标签 */
     s_conn_label = lv_label_create(container);
     lv_obj_set_style_text_font(s_conn_label, &font_alipuhui20, 0);
     lv_obj_set_style_text_color(s_conn_label, lv_color_hex(0x006600), 0);
@@ -401,25 +518,48 @@ lv_obj_set_style_text_font(lab, &lv_font_montserrat_20, 0);
     lv_obj_set_style_text_font(s_wifi_list, &font_alipuhui20, 0);
     lv_obj_set_scrollbar_mode(s_wifi_list, LV_SCROLLBAR_MODE_OFF);
 
+    /* 已连接时显示 IP */
+    if (s_connected && s_last_ip[0]) {
+        lv_label_set_text_fmt(s_conn_label, "IP: %s", s_last_ip);
+    }
+
     lvgl_port_unlock();
 
-    s_scanning = true;
-    xTaskCreatePinnedToCore(wifi_scan_task, "wifi_scan", 4*1024, NULL, 3, NULL, 1);
+    /* 已连接 → 直接扫描；有 NVS 凭据且未连接 → 自动连接；否则扫描 */
+    if (s_connected) {
+        s_scanning = true;
+        xTaskCreatePinnedToCore(wifi_scan_task, "wifi_scan", 4*1024, NULL, 3, NULL, 1);
+    } else if (wifi_nvs_has_saved()) {
+        xTaskCreatePinnedToCore(auto_connect_task, "auto_conn", 4*1024, NULL, 3, NULL, 1);
+    } else {
+        s_scanning = true;
+        xTaskCreatePinnedToCore(wifi_scan_task, "wifi_scan", 4*1024, NULL, 3, NULL, 1);
+    }
 }
 
 static void page_wifi_on_exit(void)
 {
     int t = 50;
-    while ((s_scanning || s_connecting) && t-- > 0)
+    while ((s_scanning || s_connecting || s_auto_connecting) && t-- > 0)
         vTaskDelay(pdMS_TO_TICKS(100));
 
     if (s_pwd_page) { lv_obj_del(s_pwd_page); s_pwd_page = NULL; }
 
+    /* 已连接：保留 WiFi 栈 */
+    if (s_connected) {
+        s_scan_label = NULL;
+        s_wifi_list  = NULL;
+        s_conn_label = NULL;
+        return;
+    }
+
+    /* 未连接：释放 WiFi 栈 */
     esp_wifi_stop();
     esp_wifi_deinit();
     esp_netif_destroy(s_sta_netif);
     s_sta_netif = NULL;
     esp_event_loop_delete_default();
+    s_wifi_initialized = false;
 
     s_scan_label  = NULL;
     s_wifi_list   = NULL;
