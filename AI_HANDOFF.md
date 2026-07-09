@@ -21,7 +21,7 @@
 | 中文显示 | ✅ 完成 | font_alipuhui20，LV_FONT_FMT_TXT_LARGE |
 | 编译适配 | ✅ 完成 | ESP-IDF v6.0.1 |
 | 分区表 | ✅ 完成 | factory 8MB + storage 3MB（对齐官方 14-handheld） |
-| WiFi | ⏸ 未开发 | 页面枚举已预留 |
+| WiFi | 🔨 开发中 | `feature/wifi` 分支，页面枚举已预留 |
 | BLE | ⏸ 未开发 | 页面枚举已预留 |
 | 摄像头 | ⏸ 未开发 | CAMERA_EN=0，BSP 有 #error 阻止 |
 | 姿态传感器 | ⏸ 未开发 | qmi8658 驱动保留，页面未启用 |
@@ -31,7 +31,7 @@
 
 ## 本轮修改（2026-07-09）
 
-### 修改 1：AI_HANDOFF.md 重构
+### 修改 1：分支管理
 
 - **文件**：`AI_HANDOFF.md`
 - **目的**：按协作规则重写，固定章节格式
