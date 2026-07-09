@@ -1,5 +1,43 @@
 # AI_HANDOFF.md — 项目进度中枢
 
+## AI 协作规则
+
+当前角色分工：
+- Codex：负责规划、审查、风险判断，不直接写代码，除非用户明确要求。
+- GLM/Zcode：负责实际编码、编译修复、功能实现。
+- 所有 AI 每次完成任务后必须更新本文件。
+
+开发规则：
+1. 当前分支：feature/wifi
+2. master 保持 MP3 v0.1 稳定基线，不直接开发新功能
+3. 当前阶段优先完成 WiFi 扫描第一版的编译和实机验证
+4. 禁止随意修改：main/player/*、main/storage/sd_manager.*、main/bsp/*、components/*、partitions.csv、sdkconfig.defaults
+5. 每次写代码前先读：AI_HANDOFF.md、HARDWARE_REFERENCE.md、README.md
+6. 每次完成后必须更新：
+   - 改了哪些文件
+   - 编译是否通过
+   - 是否烧录测试
+   - 实机现象
+   - 遗留问题
+   - 下一步建议
+
+## 当前任务卡
+
+任务：验证 WiFi 扫描页面第一版  
+状态：代码已写，编译未验证  
+下一步：运行 idf.py build，修复编译错误；通过后烧录测试  
+不要做：WiFi 连接、密码保存、NTP、MP3 上传  
+
+完成标准：
+- 编译通过
+- 主菜单 WiFi 图标可点击
+- 能进入 WiFi 页面
+- 能显示附近 SSID 和信号强度
+- 退出页面不崩溃
+- 完成后更新 AI_HANDOFF.md
+
+---
+
 > 项目：ESP32-S3 MP3 多功能掌机
 > 最后更新：2026-07-09
 > Git: [github19155/esp32-s3-mp3-player](https://github.com/github19155/esp32-s3-mp3-player)
@@ -56,7 +94,7 @@
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| page_wifi.c 编译 | ⚠️ 未验证 | 代码已写但未执行 `idf.py build`，可能有编译错误 |
+| page_wifi.c 编译 | ⚠️ 未验证 | 用户将自行编译验证 |
 | page_wifi.c 功能 | ⚠️ 未测试 | 需要实物测试：点击 WiFi 图标 → 扫描 → 列表显示 |
 | MP3 播放 | ⚠️ 待实物 | 需插入含 `/music/*.mp3` 的 SD 卡测试 |
 | 中文显示 | ✅ 已验证 | font_alipuhui20 + LV_FONT_FMT_TXT_LARGE |
