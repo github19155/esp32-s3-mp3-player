@@ -34,7 +34,7 @@
 ## 当前任务卡
 
 任务：**ESP32-S3 核心基线（codex/core-base）**
-状态：**编译通过，固件 0.51 MB（524 KB），比原 6.73 MB 减少 92.2%**
+状态：**编译及实机验证通过，固件 0.51 MB（524 KB），比原 6.73 MB 减少 92.2%**
 当前分支：`codex/core-base`
 
 目标：
@@ -142,7 +142,7 @@
 
 ---
 
-## 待验证
+## 验证结果
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
@@ -150,9 +150,9 @@
 | 固件体积 | ✅ **524 KB** | 原 6.73 MB → 0.51 MB，减少 92.2% |
 | font_alipuhui20 未链接 | ✅ 确认 | map 文件 0 处引用 |
 | MP3/WiFi 符号未链接 | ✅ 确认 | player_core/sd_manager/page_mp3/page_wifi 0 处引用 |
-| 烧录 | ⏸ 待验证 | COM4，待用户烧录 |
-| 实机主菜单显示 | ⏸ 待验证 | ESP32-S3 CORE + Display + Touch Ready |
-| 触摸点击反馈 | ⏸ 待验证 | Touch Test 计数器 |
+| 烧录 | ✅ 通过 | 2026-07-12 用户完成实机烧录 |
+| 实机主菜单显示 | ✅ 通过 | ESP32-S3 CORE + Display + Touch Ready 显示正常 |
+| 触摸点击反馈 | ✅ 通过 | Touch Test 计数功能正常 |
 
 ---
 
@@ -171,9 +171,8 @@
 
 ## 下一步计划（按优先级）
 
-1. **P0** — 烧录实机验证：主菜单显示、Touch Test 点击反馈
-2. **P1** — 从 `codex/core-base` 独立创建 MP3、WiFi、BLE 等功能分支
-3. **P1** — 多功能组合验证时另建 integration 分支，不把功能合回 core-base
+1. **P1** — 从 `codex/core-base` 独立创建 MP3、WiFi、BLE 等功能分支
+2. **P1** — 多功能组合验证时另建 integration 分支，不把功能合回 core-base
 
 ---
 

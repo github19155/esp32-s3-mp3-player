@@ -22,7 +22,7 @@ master (MP3 v0.1 稳定基线，冻结)
 | 分支 | 用途 | 状态 |
 |------|------|------|
 | `master` | MP3 v0.1 稳定基线，冻结不开发 | ✅ 已冻结 |
-| `codex/core-base` | 核心基线 — 后续所有功能分支的母版 | ✅ 编译通过，待实机验证 |
+| `codex/core-base` | 核心基线 — 后续所有功能分支的母版 | ✅ 编译及实机验证通过 |
 | `feature/mp3` | 从 core-base 恢复 MP3 播放 | ⏸ 待创建 |
 | `feature/wifi` | WiFi 扫描 + 连接 + NTP | ⏸ 待创建 |
 | `feature/ble` | BLE 遥控 + OTA | ⏸ 待创建 |
@@ -71,10 +71,10 @@ master (MP3 v0.1 稳定基线，冻结)
 - [x] MP3/WAV 播放/暂停/切歌/音量
 - [x] 中文界面 + 图标主菜单
 
-### v0.2 — 核心基线（codex/core-base，待实机验证）
+### v0.2 — 核心基线（codex/core-base，已完成）
 - [x] 架构解耦：分离核心与非核心模块
 - [x] 干净编译通过，固件 536,608 bytes（524KB）
-- [ ] Touch Test 触摸验证
+- [x] 实机显示及 Touch Test 触摸验证
 
 ### v0.3 — WiFi（feature/wifi，计划）
 - [ ] WiFi 扫描 + 列表
