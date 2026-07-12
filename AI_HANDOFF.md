@@ -3,7 +3,7 @@
 > 项目：ESP32-S3 多功能掌机
 > 最后更新：2026-07-12
 > Git: [github19155/esp32-s3-mp3-player](https://github.com/github19155/esp32-s3-mp3-player)
-> 当前分支：`codex/core-base`（从 master 创建）
+> 当前分支：`master`（核心基线）
 
 ---
 
@@ -16,8 +16,8 @@
 
 开发规则：
 1. **写完代码后只 commit，不要 push。等用户说"测试通过"或"push"后再 push。**
-2. 当前分支：`codex/core-base`（核心基线）
-3. master 保留 MP3 v0.1 稳定基线，不直接开发新功能
+2. 当前分支：`master`（核心基线）
+3. `feature/mp3` 保留 MP3 v0.1 稳定版本；master 只保留核心能力
 4. 除非用户明确要求，任何 AI 不得自行合并分支、变基、回退或推送到 master
 5. 禁止随意修改：`main/bsp/*`、`main/player/*`、`main/storage/*`、`components/*`、`partitions.csv`、`sdkconfig.defaults`
 6. 每次写代码前先读：AI_HANDOFF.md、LONG_TERM_PLAN.md、HARDWARE_REFERENCE.md、README.md
@@ -33,9 +33,9 @@
 
 ## 当前任务卡
 
-任务：**ESP32-S3 核心基线（codex/core-base）**
+任务：**ESP32-S3 核心基线（master）**
 状态：**编译及实机验证通过，固件 0.51 MB（524 KB），比原 6.73 MB 减少 92.2%**
-当前分支：`codex/core-base`
+当前分支：`master`
 
 目标：
 - ✅ 核心固件只保留 NVS、I2C、PCA9557、LCD、LVGL、触摸、事件总线、页面管理框架和最小主页
@@ -72,10 +72,10 @@
 | 编译 | ✅ **通过** | **mp3_player.bin = 524 KB (0.51 MB)** |
 | 符号排除 | ✅ **确认** | font_alipuhui20/player/sd/mp3/wifi 未链接 |
 | esp_codec_dev | ⚠️ 被动链接 | BSP 引用 codec symbol，不调用无害 |
-| WiFi | ⏸ 未开发 | 从 core-base 开 feature/wifi 分支 |
-| BLE | ⏸ 未开发 | 从 core-base 开功能分支 |
-| 摄像头 | ⏸ 未开发 | 从 core-base 开功能分支 |
-| 姿态传感器 | ⏸ 未开发 | 从 core-base 开功能分支 |
+| WiFi | ⏸ 待迁移 | 现有 feature/wifi 基于旧 MP3 版本，需从 master 重新整理 |
+| BLE | ⏸ 未开发 | 从 master 开功能分支 |
+| 摄像头 | ⏸ 未开发 | 从 master 开功能分支 |
+| 姿态传感器 | ⏸ 未开发 | 从 master 开功能分支 |
 
 ---
 
@@ -125,7 +125,7 @@
 ### 修改 7：长期规划
 
 - **文件**：`LONG_TERM_PLAN.md`（新建）
-- **目的**：定义分支策略：core-base 是母版，master 保留 MP3 v0.1，WiFi/MP3/BLE 从 core-base 分别开 feature 分支
+- **目的**：记录核心母版与 MP3、WiFi、BLE 等独立功能分支策略
 - **影响范围**：仅文档
 
 ### 修改 8：README 更新
@@ -171,13 +171,13 @@
 
 ## 下一步计划（按优先级）
 
-1. **P1** — 从 `codex/core-base` 独立创建 MP3、WiFi、BLE 等功能分支
-2. **P1** — 多功能组合验证时另建 integration 分支，不把功能合回 core-base
+1. **P1** — 从核心 `master` 独立创建或迁移 WiFi、BLE 等功能分支
+2. **P1** — 多功能组合验证时另建 integration 分支，不把功能合回 master
 
 ---
 
 ## 已确认的分支原则
 
-1. MP3、WiFi、BLE 等功能分支各自独立从 `codex/core-base` 分叉，不形成依赖链。
-2. MP3 分支优先按模块恢复 CMake、依赖和初始化调用；不整体回退核心提交。
-3. `codex/core-base` 长期只保存核心能力。
+1. `master` 长期只保存核心能力。
+2. `feature/mp3` 固定保存原 MP3 v0.1 稳定版本。
+3. WiFi、BLE 等新功能从 `master` 独立分叉，不形成依赖链。

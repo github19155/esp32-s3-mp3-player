@@ -7,12 +7,13 @@
 
 ## 当前状态
 
-**核心基线（codex/core-base）已完成编译和实机验证**（2026-07-12）。
+**核心基线（master）已完成编译和实机验证**（2026-07-12）。
 
 | 分支 | 描述 | 状态 |
 |------|------|------|
-| `master` | MP3 v0.1 稳定基线，冻结 | ✅ 已冻结 |
-| `codex/core-base` | 核心基线 — 后续所有功能分支的母版 | ✅ 编译及实机验证通过 |
+| `master` | 核心基线 — 后续所有功能分支的母版 | ✅ 编译及实机验证通过 |
+| `feature/mp3` | 原 MP3 v0.1 稳定版本 | ✅ 已保留 |
+| `codex/core-base` | 核心切换前的同版本备份分支 | 📦 临时保留 |
 
 ### 核心基线包含
 
@@ -37,7 +38,7 @@
 
 ```bash
 # 1. 切换到核心基线分支
-git checkout codex/core-base
+git checkout master
 
 # 2. 设置芯片
 idf.py set-target esp32s3
@@ -88,7 +89,7 @@ main/
 
 ### 扩展机制
 
-从 `codex/core-base` 创建功能分支后：
+从 `master` 创建功能分支后：
 
 1. 写 `pages/page_wifi.c`，实现注册函数
 2. 在 `main.c` 中加初始化调用

@@ -8,37 +8,36 @@
 ## 分支策略
 
 ```
-master (MP3 v0.1 稳定基线，冻结)
-  └── codex/core-base (核心基线: NVS + I2C + PCA9557 + LCD + LVGL + Touch + EventBus + PageMgr)
-        ├── feature/mp3  (从 core-base 恢复 MP3 播放功能)
-        ├── feature/wifi (WiFi 扫描 + 连接 + NTP)
-        ├── feature/ble  (BLE 遥控)
-        ├── feature/camera
-        └── feature/attitude (姿态传感器)
+master (核心基线: NVS + I2C + PCA9557 + LCD + LVGL + Touch + EventBus + PageMgr)
+  ├── feature/mp3      (原 MP3 v0.1 稳定版本)
+  ├── feature/wifi-new (从核心重新整理 WiFi 功能)
+  ├── feature/ble      (BLE 遥控)
+  ├── feature/camera
+  └── feature/attitude (姿态传感器)
 ```
 
 ### 分支说明
 
 | 分支 | 用途 | 状态 |
 |------|------|------|
-| `master` | MP3 v0.1 稳定基线，冻结不开发 | ✅ 已冻结 |
-| `codex/core-base` | 核心基线 — 后续所有功能分支的母版 | ✅ 编译及实机验证通过 |
-| `feature/mp3` | 从 core-base 恢复 MP3 播放 | ⏸ 待创建 |
-| `feature/wifi` | WiFi 扫描 + 连接 + NTP | ⏸ 待创建 |
+| `master` | 核心基线 — 后续所有功能分支的母版 | ✅ 编译及实机验证通过 |
+| `feature/mp3` | 原 MP3 v0.1 稳定版本 | ✅ 已保留 |
+| `codex/core-base` | 与当前核心 master 相同的临时备份 | 📦 临时保留 |
+| `feature/wifi` | 基于旧 MP3 master 的 WiFi 开发记录 | ⚠️ 待迁移 |
 | `feature/ble` | BLE 遥控 + OTA | ⏸ 待创建 |
 | `feature/camera` | 摄像头预览 | ⏸ 待创建 |
 | `feature/attitude` | 姿态传感器 QMI8658 | ⏸ 待创建 |
 
 ### 合并策略
 
-1. 所有功能分支从 `codex/core-base` 创建（不直接从 master）
-2. `codex/core-base` 只保存核心能力，不合入 MP3、WiFi、BLE 等业务功能
+1. 所有新功能分支从核心 `master` 创建
+2. `master` 只保存核心能力，不合入 MP3、WiFi、BLE 等业务功能
 3. 多功能组合验证时另建 integration 分支，不污染核心母版
 4. 禁止直接向 `master` 提交；发布策略由用户确认后再执行
 
 ---
 
-## 核心基线（codex/core-base）
+## 核心基线（master）
 
 ### 保留模块
 - NVS（非易失性存储）
@@ -64,14 +63,14 @@ master (MP3 v0.1 稳定基线，冻结)
 
 ## 里程碑
 
-### v0.1 — MP3 播放器（master，已完成）
+### v0.1 — MP3 播放器（feature/mp3，已完成）
 - [x] BSP 驱动
 - [x] 事件总线
 - [x] SD 卡扫描
 - [x] MP3/WAV 播放/暂停/切歌/音量
 - [x] 中文界面 + 图标主菜单
 
-### v0.2 — 核心基线（codex/core-base，已完成）
+### v0.2 — 核心基线（master，已完成）
 - [x] 架构解耦：分离核心与非核心模块
 - [x] 干净编译通过，固件 536,608 bytes（524KB）
 - [x] 实机显示及 Touch Test 触摸验证
