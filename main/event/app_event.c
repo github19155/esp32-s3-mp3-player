@@ -7,7 +7,6 @@ static QueueHandle_t s_event_queue = NULL;
 
 /* ========== 转发声明 — 事件分发目标 ========== */
 extern void page_manager_on_event(const app_event_t *event);
-extern void player_core_on_event(const app_event_t *event);
 
 void app_event_init(int queue_len)
 {
@@ -55,22 +54,6 @@ void app_event_task(void *pvParameters)
             ESP_LOGD(TAG, "Dispatch event type=%d payload=%d", event.type, event.payload);
 
             /* 分发到各模块 — 按事件类型路由 */
-
-            /* 播放器相关 → player_core */
-            switch (event.type) {
-            case APP_EVENT_PLAY:
-            case APP_EVENT_PAUSE:
-            case APP_EVENT_RESUME:
-            case APP_EVENT_NEXT:
-            case APP_EVENT_PREV:
-            case APP_EVENT_VOLUME_UP:
-            case APP_EVENT_VOLUME_DOWN:
-            case APP_EVENT_VOLUME_SET:
-                player_core_on_event(&event);
-                break;
-            default:
-                break;
-            }
 
             /* 页面导航 → page_manager */
             switch (event.type) {
