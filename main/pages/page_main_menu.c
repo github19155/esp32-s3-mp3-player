@@ -23,6 +23,13 @@ static void touch_test_click_cb(lv_event_t *e)
     }
 }
 
+/* ========== WiFi 页面入口 ========== */
+static void wifi_entry_click_cb(lv_event_t *e)
+{
+    (void)e;
+    app_event_post(APP_EVENT_PAGE_OPEN, (int)PAGE_WIFI);
+}
+
 /* ========== 创建核心主菜单 ========== */
 void page_main_menu_create(void)
 {
@@ -59,7 +66,7 @@ void page_main_menu_create(void)
     lv_obj_t *sub_label = lv_label_create(main_obj);
     lv_obj_set_style_text_font(sub_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(sub_label, lv_color_hex(0x88ccff), 0);
-    lv_label_set_text(sub_label, "Display + Touch Ready");
+    lv_label_set_text(sub_label, "Display + Touch + WiFi Ready");
     lv_obj_align(sub_label, LV_ALIGN_TOP_MID, 0, 55);
 
     /* ── 分隔线 ── */
@@ -70,7 +77,7 @@ void page_main_menu_create(void)
     lv_obj_set_style_bg_opa(line, LV_OPA_COVER, 0);
     lv_obj_align(line, LV_ALIGN_TOP_MID, 0, 85);
 
-    /* ── Touch Test 按钮 ── */
+    /* ── 通用按钮样式 ── */
     static lv_style_t btn_style;
     lv_style_init(&btn_style);
     lv_style_set_radius(&btn_style, 12);
@@ -80,10 +87,11 @@ void page_main_menu_create(void)
     lv_style_set_pad_all(&btn_style, 10);
     lv_style_set_text_color(&btn_style, lv_color_hex(0xffffff));
 
+    /* ── Touch Test 按钮 ── */
     lv_obj_t *btn = lv_btn_create(main_obj);
     lv_obj_add_style(btn, &btn_style, 0);
     lv_obj_set_size(btn, 160, 50);
-    lv_obj_align(btn, LV_ALIGN_CENTER, 0, -10);
+    lv_obj_align(btn, LV_ALIGN_CENTER, 0, -25);
     lv_obj_add_event_cb(btn, touch_test_click_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *btn_label = lv_label_create(btn);
@@ -96,13 +104,34 @@ void page_main_menu_create(void)
     lv_obj_set_style_text_font(count_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(count_label, lv_color_hex(0xcccccc), 0);
     lv_label_set_text(count_label, "Taps: 0");
-    lv_obj_align(count_label, LV_ALIGN_CENTER, 0, 50);
+    lv_obj_align(count_label, LV_ALIGN_CENTER, 0, 35);
+
+    /* ── WiFi 按钮（右下） ── */
+    static lv_style_t wifi_btn_style;
+    lv_style_init(&wifi_btn_style);
+    lv_style_set_radius(&wifi_btn_style, 12);
+    lv_style_set_bg_color(&wifi_btn_style, lv_color_hex(0xcd5c5c));
+    lv_style_set_bg_opa(&wifi_btn_style, LV_OPA_COVER);
+    lv_style_set_border_width(&wifi_btn_style, 0);
+    lv_style_set_pad_all(&wifi_btn_style, 10);
+    lv_style_set_text_color(&wifi_btn_style, lv_color_hex(0xffffff));
+
+    lv_obj_t *wifi_btn = lv_btn_create(main_obj);
+    lv_obj_add_style(wifi_btn, &wifi_btn_style, 0);
+    lv_obj_set_size(wifi_btn, 80, 40);
+    lv_obj_align(wifi_btn, LV_ALIGN_BOTTOM_RIGHT, -10, -30);
+    lv_obj_add_event_cb(wifi_btn, wifi_entry_click_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *wifi_btn_label = lv_label_create(wifi_btn);
+    lv_obj_set_style_text_font(wifi_btn_label, &lv_font_montserrat_14, 0);
+    lv_label_set_text(wifi_btn_label, "WiFi");
+    lv_obj_center(wifi_btn_label);
 
     /* ── 底部版本信息 ── */
     lv_obj_t *ver_label = lv_label_create(main_obj);
     lv_obj_set_style_text_font(ver_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(ver_label, lv_color_hex(0x668899), 0);
-    lv_label_set_text(ver_label, "core-base v1.0");
+    lv_label_set_text(ver_label, "core-base v1.0 + WiFi");
     lv_obj_align(ver_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 
     lvgl_port_unlock();
@@ -110,5 +139,5 @@ void page_main_menu_create(void)
     /* 通知 page_manager */
     page_manager_set_main_menu(main_obj);
 
-    ESP_LOGI(TAG, "Core main menu created");
+    ESP_LOGI(TAG, "Core main menu created (with WiFi entry)");
 }

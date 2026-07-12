@@ -8,6 +8,7 @@
 #include "app_event.h"
 #include "page_manager.h"
 #include "page_main_menu.h"
+#include "page_wifi.h"
 
 static const char *TAG = "main";
 
@@ -53,13 +54,16 @@ void app_main(void)
     /* ── 6. 页面管理器 ── */
     page_manager_init();
 
-    /* ── 7. 创建主菜单 ── */
+    /* ── 7. 注册各页面 ── */
+    page_wifi_register();
+
+    /* ── 8. 创建主菜单 ── */
     page_main_menu_create();
 
-    /* ── 8. 启动事件分发任务 ── */
+    /* ── 9. 启动事件分发任务 ── */
     xTaskCreatePinnedToCore(app_event_task, "event_task", 4 * 1024, NULL, 5, NULL, 0);
 
-    /* ── 9. 内存监控（可选） ── */
+    /* ── 10. 内存监控（可选） ── */
     xTaskCreatePinnedToCore(memory_monitor_task, "mem_mon", 2 * 1024, NULL, 1, NULL, 1);
 
     ESP_LOGI(TAG, "Core system ready");
